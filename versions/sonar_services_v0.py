@@ -8,7 +8,14 @@ from app.libs.echosndr import DualEchosounder
 import app.services.gps_service as gps_service
 4) Remove irrelevant imports
 """
+<<<<<<< HEAD
 from libraries.echosndr import DualEchosounder
+=======
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent / "libraries"))
+from echosndr import DualEchosounder
+>>>>>>> e100ad9a67761333189e4e447559087ef07aeba4
 import asyncio
 import re
 import csv
@@ -18,7 +25,7 @@ import threading
 import os
 
 csvfile = None
-writer = None
+writer = None  
 _thread = None
 _stop_event = threading.Event()
 _lock = threading.Lock()
@@ -58,15 +65,29 @@ def connectSonar(usb: str):
 
     try:
         print("Connecting to sonar device...")
+        # Add validation for port format
+        if not usb or not isinstance(usb, str):
+            raise ValueError("Invalid USB port specified")
+        
         sonar = DualEchosounder(usb, 115200)
+    except ValueError as e:
+        print(f"Error: Invalid port configuration - {e}")
+        raise RuntimeError(e)
+    except PermissionError as e:
+        print(f"Error: Permission denied accessing port {usb} - {e}")
+        raise RuntimeError(e)
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error: Failed to connect to port {usb} - {e}")
         raise RuntimeError(e)
 
-    detected = sonar.Detect()
-    if not detected:
-        print("Error: No sonar device detected")
-        raise RuntimeError("The device is not a sonar")
+    try:
+        detected = sonar.Detect()
+        if not detected:
+            print("Error: No sonar device detected")
+            raise RuntimeError("The device is not a sonar")
+    except Exception as e:
+        print(f"Error: Device detection failed - {e}")
+        raise RuntimeError(e)
 
     sonar.SetCurrentTime()
     sonar.SendCommand("IdSetDualFreq")
@@ -74,30 +95,74 @@ def connectSonar(usb: str):
     sonar.SetValue("IdInterval", "1")
     print("Sonar device detected successfully")
 
-def writeToCSVFile(usb: str, csv_directory):
+def writeToCSVFile(usb: str, csv_name):
     global csvfile, writer, _thread, sonar
     connectSonar(usb)
 
+<<<<<<< HEAD
     # Ensure output directory exists and build a valid CSV file path
     if not os.path.exists(csv_directory):
         os.makedirs(csv_directory, exist_ok=True)
     timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
     csv_filename = f"sonar_data_{timestamp}.csv"
     csv_path = os.path.join(csv_directory, csv_filename)
+=======
+    # Create output directory with better error handling
+    output_dir = os.getcwd()  # Start with current directory as fallback
+    
+    try:
+        # Try to create sonar_output subdirectory
+        preferred_dir = os.path.join(os.getcwd(), "sonar_output")
+        os.makedirs(preferred_dir, exist_ok=True)
+        output_dir = preferred_dir
+        print(f"Using output directory: {output_dir}")
+    except PermissionError:
+        print("Warning: Cannot create sonar_output directory, using current directory")
+    except Exception as e:
+        print(f"Warning: Directory creation failed: {e}, using current directory")
+    
+    # Create timestamped filename
+    timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+    csv_filename = f"{timestamp}_{csv_name}.csv"
+    csv_path = os.path.join(output_dir, csv_filename)
+    
+>>>>>>> e100ad9a67761333189e4e447559087ef07aeba4
     try:
         with _lock:
             if _thread and _thread.is_alive():
                 print("Error: Thread already running.")
                 return csv_path
+<<<<<<< HEAD
+=======
+        
+        # Test file write permissions before proceeding
+        try:
+            test_file = open(csv_path, "w")
+            test_file.close()
+            os.remove(csv_path)  # Clean up test file
+        except PermissionError:
+            # Try with a different filename in temp directory
+            import tempfile
+            temp_dir = tempfile.gettempdir()
+            csv_path = os.path.join(temp_dir, csv_filename)
+            print(f"Warning: Using temporary directory: {temp_dir}")
+        
+>>>>>>> e100ad9a67761333189e4e447559087ef07aeba4
         csvfile = open(csv_path, "w", newline="")
         writer = csv.writer(csvfile)
         writer.writerow(["Date (UTC)", "Heure UTC", "Heure locale", "HF (m)", "LF (m)", "Température eau (°C)"])
         _stop_event.clear()
         _thread = threading.Thread(target=_write_loop)
         _thread.start()
+        
+        print(f"CSV file created: {csv_path}")
     except Exception as e:
         print(f"Error: {e}")
         raise RuntimeError(e)
+<<<<<<< HEAD
+=======
+    
+>>>>>>> e100ad9a67761333189e4e447559087ef07aeba4
     return csv_path
     
 def stopWritingToCSV():
