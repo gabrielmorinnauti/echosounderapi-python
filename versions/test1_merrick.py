@@ -6,7 +6,10 @@ from echosndr import DualEchosounder
 import time
 import threading
 import sys
-import msvcrt  # Windows only
+try:
+    import msvcrt  # Windows only - will fail on Linux/Mac
+except ImportError:
+    msvcrt = None
 
 PORT = "\\\\.\\COM10"  # Update this if your port changes
 BAUD = 115200
@@ -14,6 +17,9 @@ OUTPUT_FILE = "sonar_log.txt"
 LOG_INTERVAL = 0.2  # seconds between reads
 
 def keyboard_listener(stop_flag):
+    if msvcrt is None:
+        print("Keyboard listener not supported on this OS")
+        return
     print("Press '+' to stop logging...")
     while True:
         if msvcrt.kbhit():
