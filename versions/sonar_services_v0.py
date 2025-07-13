@@ -8,7 +8,7 @@ from app.libs.echosndr import DualEchosounder
 import app.services.gps_service as gps_service
 4) Remove irrelevant imports
 """
-from ..libraries.echosndr import DualEchosounder
+from libraries.echosndr import DualEchosounder
 import asyncio
 import re
 import csv
@@ -78,38 +78,27 @@ def writeToCSVFile(usb: str, csv_directory):
     global csvfile, writer, _thread, sonar
     connectSonar(usb)
 
-    # Check output directory exists
-    output_dir = os.path.dirname(csv_directory)
-    if output_dir and not os.path.exists(output_dir):
-        # Try to create a sonar_output directory relative to current working directory
-        sonar_output_dir = os.path.join(os.getcwd(), csv_directory)
-        try:
-            os.makedirs(sonar_output_dir, exist_ok=True)
-            timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-            filename: str = os.path.basename(csv_directory)
-            csv_directory = os.path.join(sonar_output_dir, f"{timestamp}_{filename}.csv")
-            output_dir = sonar_output_dir
-        except Exception as e:
-            print(f"Error: {e}")
-            raise RuntimeError(e)
+    # Ensure output directory exists and build a valid CSV file path
+    if not os.path.exists(csv_directory):
+        os.makedirs(csv_directory, exist_ok=True)
+    timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+    csv_filename = f"sonar_data_{timestamp}.csv"
+    csv_path = os.path.join(csv_directory, csv_filename)
     try:
         with _lock:
             if _thread and _thread.is_alive():
                 print("Error: Thread already running.")
-                return csv_directory
-        
-        csvfile = open(csv_directory, "w", newline="")
+                return csv_path
+        csvfile = open(csv_path, "w", newline="")
         writer = csv.writer(csvfile)
         writer.writerow(["Date (UTC)", "Heure UTC", "Heure locale", "HF (m)", "LF (m)", "Température eau (°C)"])
-        
         _stop_event.clear()
         _thread = threading.Thread(target=_write_loop)
         _thread.start()
     except Exception as e:
         print(f"Error: {e}")
         raise RuntimeError(e)
-    
-    return output_dir
+    return csv_path
     
 def stopWritingToCSV():
     global _thread, csvfile, writer
