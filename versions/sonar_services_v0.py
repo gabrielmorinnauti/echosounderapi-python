@@ -8,14 +8,10 @@ from app.libs.echosndr import DualEchosounder
 import app.services.gps_service as gps_service
 4) Remove irrelevant imports
 """
-<<<<<<< HEAD
-from libraries.echosndr import DualEchosounder
-=======
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "libraries"))
 from echosndr import DualEchosounder
->>>>>>> e100ad9a67761333189e4e447559087ef07aeba4
 import asyncio
 import re
 import csv
@@ -99,14 +95,6 @@ def writeToCSVFile(usb: str, csv_name):
     global csvfile, writer, _thread, sonar
     connectSonar(usb)
 
-<<<<<<< HEAD
-    # Ensure output directory exists and build a valid CSV file path
-    if not os.path.exists(csv_directory):
-        os.makedirs(csv_directory, exist_ok=True)
-    timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    csv_filename = f"sonar_data_{timestamp}.csv"
-    csv_path = os.path.join(csv_directory, csv_filename)
-=======
     # Create output directory with better error handling
     output_dir = os.getcwd()  # Start with current directory as fallback
     
@@ -126,14 +114,11 @@ def writeToCSVFile(usb: str, csv_name):
     csv_filename = f"{timestamp}_{csv_name}.csv"
     csv_path = os.path.join(output_dir, csv_filename)
     
->>>>>>> e100ad9a67761333189e4e447559087ef07aeba4
     try:
         with _lock:
             if _thread and _thread.is_alive():
                 print("Error: Thread already running.")
                 return csv_path
-<<<<<<< HEAD
-=======
         
         # Test file write permissions before proceeding
         try:
@@ -147,10 +132,11 @@ def writeToCSVFile(usb: str, csv_name):
             csv_path = os.path.join(temp_dir, csv_filename)
             print(f"Warning: Using temporary directory: {temp_dir}")
         
->>>>>>> e100ad9a67761333189e4e447559087ef07aeba4
         csvfile = open(csv_path, "w", newline="")
         writer = csv.writer(csvfile)
         writer.writerow(["Date (UTC)", "Heure UTC", "Heure locale", "HF (m)", "LF (m)", "Température eau (°C)"])
+        
+        sonar.Start()
         _stop_event.clear()
         _thread = threading.Thread(target=_write_loop)
         _thread.start()
@@ -159,10 +145,7 @@ def writeToCSVFile(usb: str, csv_name):
     except Exception as e:
         print(f"Error: {e}")
         raise RuntimeError(e)
-<<<<<<< HEAD
-=======
     
->>>>>>> e100ad9a67761333189e4e447559087ef07aeba4
     return csv_path
     
 def stopWritingToCSV():
@@ -171,6 +154,7 @@ def stopWritingToCSV():
     if _thread:
         _thread.join()
     
+    sonar.Stop()
     if csvfile:
         file_path = csvfile.name
         csvfile.close()
