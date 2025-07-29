@@ -83,14 +83,14 @@ def parse_xdr(line):
     
     # Pitch & Roll
     if "PTCH" in line:
-        print("📡 Parsing Pitch/Roll...")
+       # print("📡 Parsing Pitch/Roll...")
         try:
             parts = line.split(",")
             pitch = float(parts[2])
             roll = float(parts[6])
             print(f"Pitch: {pitch}° | Roll: {roll}°")
         except (IndexError, ValueError):
-            print("⚠️ Erreur de parsing Pitch/Roll")
+            #print("⚠️ Erreur de parsing Pitch/Roll")
             pass
 
     # EMA (signal max)
