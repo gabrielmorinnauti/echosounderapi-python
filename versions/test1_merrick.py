@@ -1,5 +1,5 @@
 # sonar_logger.py
-from echosndr import DualEchosounder
+from ..libs.echosndr import DualEchosounder
 import time
 import threading
 import sys
