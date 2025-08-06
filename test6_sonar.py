@@ -1,7 +1,7 @@
 import re
 import csv
 import time
-from ..libs.echosndr import DualEchosounder
+from echosndr import DualEchosounder
 
 # === Configuration ===
 PORT = "COM10"
@@ -24,9 +24,9 @@ sonar.SetCurrentTime()                     # Synchro horloge
 sonar.SendCommand("IdSetDualFreq")         # Mode double fréquence
 sonar.SetValue("IdOutput", "3")
 sonar.SetValue("IdInterval", "0.5")
-#sonar.SetValue("IdNMEAXDR", "1")  # Active trames XDR (pitch/roll/EMA)
-#sonar.SetValue("IdNMEAMTW", "1")  # Température
-#sonar.SetValue("IdNMEADBT", "1")  # Profondeur
+sonar.SetValue("IdNMEAXDR", "1")  # Active trames XDR (pitch/roll/EMA)
+sonar.SetValue("IdNMEAMTW", "1")  # Température
+sonar.SetValue("IdNMEADBT", "1")  # Profondeur
 sonar.Start()
 print("📡 Acquisition dual fréquence lancée...")
 
@@ -80,22 +80,29 @@ def parse_mtw(line):
 
 def parse_xdr(line):
     global pitch, roll, ema
-    print("Parsing XDR data...")
+    
     # Pitch & Roll
-    if "A" in line and "PTCH" in line:
+    if "PTCH" in line:
+       # print("📡 Parsing Pitch/Roll...")
         try:
             parts = line.split(",")
-            pitch = float(parts[1])
-            roll = float(parts[5])
+            pitch = float(parts[2])
+            roll = float(parts[6])
+            print(f"Pitch: {pitch}° | Roll: {roll}°")
         except (IndexError, ValueError):
+            #print("⚠️ Erreur de parsing Pitch/Roll")
             pass
 
     # EMA (signal max)
     elif "EMA" in line:
+        print("📡 Parsing EMA...")
         try:
+            print("📡 XDR brute :", line)  # ← Devrait apparaître
             parts = line.split(",")
-            ema = float(parts[1])
+            ema = float(parts[2])
+            print(f"EMA: {ema} %")
         except (IndexError, ValueError):
+            print("⚠️ Erreur de parsing EMA")
             pass
 
 # === Boucle principale ===
@@ -105,6 +112,9 @@ try:
         if raw:
             lines = raw.decode("latin_1", errors="ignore").splitlines()
             for line in lines:
+                print("🛰️ Trame reçue :", line)  # ← Debug général
+                if "$SDXDR" in line:
+                    print("📡 XDR brute :", line)  # ← Devrait apparaître
                 if "$SDZDA" in line:
                     parse_zda(line)
                 elif "$SDDBT" in line:
@@ -114,7 +124,7 @@ try:
                 elif "$SDXDR" in line:
                     parse_xdr(line)
                     
-        time.sleep(0.05)
+        time.sleep(1.0)
 
 except KeyboardInterrupt:
     print("\n🛑 Fin du relevé. Fichier sauvegardé.")

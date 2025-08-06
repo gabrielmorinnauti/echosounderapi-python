@@ -1,5 +1,5 @@
 # Copyright (c) EofE Ultrasonics Co., Ltd., 2024
-from ..libs.echosndr import DualEchosounder
+from echosndr import DualEchosounder
 import time
 
 # Remplacer par ton vrai port COM ou /dev/ttyUSBx si tu es sur Linux
@@ -40,11 +40,9 @@ else:
             try:
                 print("📡 Lecture des données... (CTRL+C pour arrêter)")
                 while True:
-                    raw = sonar.ReadData(256)
-                    lines = raw.decode("latin_1", errors="ignore").splitlines()
-                    for line in lines:
-                        if "$SDXDR" in line:
-                            print("XDR Data:", line)
+                    data = sonar.ReadData(256)  # Lire jusqu'à 256 octets
+                    if data:
+                        print(data.decode("latin_1", errors="ignore").strip())
                     time.sleep(0.1)
 
             except KeyboardInterrupt:

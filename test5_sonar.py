@@ -1,7 +1,7 @@
 import re
 import csv
 import time
-from ..libs.echosndr import DualEchosounder
+from echosndr import DualEchosounder
 
 # === Configuration ===
 PORT = "COM10"
