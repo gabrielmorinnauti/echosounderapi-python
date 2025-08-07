@@ -17,6 +17,6 @@ except:
 if not sonar.IsDetected():
     print("❗ Sonar non détecté")
     exit()
-
-sonar.Stop()
 print("✅ Sonar détecté")
+sonar.Stop()
+print("✅ Sonar arrêté")
