@@ -67,6 +67,7 @@ if not sonar.IsDetected():
     print("❗ Sonar non détecté")
     exit()
 
+sonar.Stop()
 print("✅ Sonar détecté")
 sonar.SetCurrentTime()                     # Synchro horloge
 sonar.SendCommand("IdSetDualFreq")         # Mode double fréquence
@@ -75,7 +76,6 @@ sonar.SetValue("IdInterval", "0.5")
 sonar.SetValue("IdNMEAXDR", "1")  # Active trames XDR (pitch/roll/EMA)
 sonar.SetValue("IdNMEAMTW", "1")  # Température
 sonar.SetValue("IdNMEADBT", "1")  # Profondeur
-sonar.Start()
 
 print("✅ Adjusting settings")
 # Adds other settings by looping through them
@@ -85,6 +85,7 @@ for setting in defaultSettings:
         sonar.SetValue(command, str(value))
         print(f"Set {command}: {value}")
 
+sonar.Start()
 print("📡 Acquisition dual fréquence lancée...")
 
 
