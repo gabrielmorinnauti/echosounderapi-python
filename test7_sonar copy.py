@@ -107,15 +107,17 @@ try:
     filename_200 = f"200kHzsonar_{formatted_date}_{formatted_time}.log"
     filename_30 = f"30kHzsonar_{formatted_date}_{formatted_time}.log"
 
+    serial = sonar.GetSerialPort()
+
     with open(filename_200, "w") as sonarLogs200kHz, \
         open(filename_30, "w") as sonarLogs30kHz:
         
         while True:
-            raw = sonar.ReadData(256)
-            if raw:
-                lines = raw.decode("latin_1", errors="ignore").splitlines()
-                
-                for line in lines:
+            if serial.in_waiting > 0:
+                is_first = True
+                while True:
+                    line = serial.readline().decode("latin_1").strip()
+                    
                     if "#F" in line and "200000" in line:
                         lastFrequency = 200000
                     elif "#F" in line and "30000" in line:
@@ -127,7 +129,14 @@ try:
                     elif lastFrequency == 30000:
                         sonarLogs30kHz.write(line + "\n")
                         sonarLogs30kHz.flush()
-            time.sleep(0.01)
+                    
+                    if "$SDXDR" in line:
+                        if is_first:
+                            is_first = False
+                        else:
+                            break
+            else:
+                time.sleep(0.01)
 
 except KeyboardInterrupt:
     print("\n🛑 Fin du relevé. Fichier sauvegardé.")
