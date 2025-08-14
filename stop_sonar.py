@@ -7,7 +7,7 @@ from echosndr import DualEchosounder
 PORT = "COM10"
 BAUD = 115200
 
-''' Sonar Connection & Update Parameters'''
+''' Sonar Connection & Update Parameters''' 
 try:
     sonar = DualEchosounder(PORT, BAUD)
 except:
